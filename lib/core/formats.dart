@@ -1,0 +1,20 @@
+/// Human labels for barcode format names (mobile_scanner's BarcodeFormat.name).
+String formatLabel(String format) => switch (format) {
+  'qrCode' => 'QR code',
+  'microQrCode' => 'Micro QR code',
+  'aztec' => 'Aztec code',
+  'dataMatrix' => 'Data Matrix',
+  'pdf417' => 'PDF417',
+  'maxiCode' => 'MaxiCode',
+  'ean13' => 'EAN-13 barcode',
+  'ean8' => 'EAN-8 barcode',
+  'upcA' => 'UPC-A barcode',
+  'upcE' => 'UPC-E barcode',
+  'code128' => 'Code 128 barcode',
+  'code39' => 'Code 39 barcode',
+  'code93' => 'Code 93 barcode',
+  'codabar' => 'Codabar barcode',
+  'itf' => 'ITF barcode',
+  'dataBar' || 'dataBarExpanded' || 'dataBarLimited' => 'GS1 DataBar',
+  _ => 'Code',
+};
