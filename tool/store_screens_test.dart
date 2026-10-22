@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
 // Renders the real app UI in its key states for the Play screenshots.
 //
 //   flutter test tool/store_screens_test.dart && flutter test tool/make_graphics_test.dart
