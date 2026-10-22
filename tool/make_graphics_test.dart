@@ -7,10 +7,14 @@
 //   android/app/src/main/res/drawable-*/ic_launcher_{foreground,background,monochrome}.png  adaptive icon
 //   android/app/src/main/res/mipmap-*/ic_launcher.png                                        legacy icon
 //   store-assets/icon-512.png                                                                Play icon
+//   store-assets/feature-graphic-1024x500.png                                                Play feature graphic
+//   store-assets/screenshots/*.png         1080x1920 captioned phone screenshots, framed from the
+//                                          app renders in store-assets/raw/ (tool/store_screens_test.dart)
 import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const res = 'android/app/src/main/res';
@@ -150,8 +154,138 @@ Future<void> makeIcons() async {
   });
 }
 
+void text(Canvas c, String t, Offset at, TextStyle style, {double maxWidth = 2000, TextAlign align = TextAlign.left}) {
+  final tp = TextPainter(
+    text: TextSpan(text: t, style: style),
+    textDirection: TextDirection.ltr,
+    textAlign: align,
+  )..layout(maxWidth: maxWidth);
+  final dx = align == TextAlign.center ? at.dx - tp.width / 2 : at.dx;
+  tp.paint(c, Offset(dx, at.dy));
+}
+
+Future<void> featureGraphic() async {
+  await save('store-assets/feature-graphic-1024x500.png', 1024, 500, (c, s) {
+    background(c, Offset.zero & s);
+    c.drawCircle(
+      const Offset(230, 250),
+      260,
+      Paint()
+        ..shader = ui.Gradient.radial(const Offset(230, 250), 260, [
+          Colors.white.withValues(alpha: 0.14),
+          Colors.white.withValues(alpha: 0),
+        ]),
+    );
+    mark(c, Rect.fromCenter(center: const Offset(230, 250), width: 300, height: 300));
+    const title = TextStyle(
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w900,
+      fontSize: 116,
+      color: Colors.white,
+      letterSpacing: -2,
+    );
+    text(c, 'ScanLink', const Offset(440, 110), title);
+    text(
+      c,
+      'QR & barcode scanner',
+      const Offset(446, 255),
+      const TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w500, fontSize: 40, color: Colors.white),
+    );
+    text(
+      c,
+      'Camera or gallery · Opens links in one tap · No login',
+      const Offset(448, 330),
+      TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        fontSize: 22,
+        color: Colors.white.withValues(alpha: 0.85),
+      ),
+    );
+  });
+}
+
+Future<ui.Image> loadImage(String path) async {
+  final codec = await ui.instantiateImageCodec(File(path).readAsBytesSync());
+  return (await codec.getNextFrame()).image;
+}
+
+/// 1080x1920 (9:16) with a caption above a framed app render.
+Future<void> screenshots() async {
+  const shots = [
+    ('01-scan', 'Scan any code', 'QR codes and barcodes, instantly'),
+    ('02-link', 'See it, then open it', 'Links open in your browser in one tap'),
+    ('03-wifi', 'Wi-Fi in a snap', 'Network name and password, ready to copy'),
+    ('04-contact', 'Scan from your photos', 'Pick a picture from your gallery'),
+    ('05-history', 'Your scan history', 'Saved on your phone only'),
+    ('06-settings', 'No login, no account', 'Simple settings, privacy first'),
+  ];
+  for (final (name, head, sub) in shots) {
+    final raw = 'store-assets/raw/$name.png';
+    if (!File(raw).existsSync()) continue;
+    final img = await loadImage(raw);
+    await save('store-assets/screenshots/$name.png', 1080, 1920, (c, s) {
+      background(c, Offset.zero & s);
+      text(
+        c,
+        head,
+        Offset(s.width / 2, 90),
+        const TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w800, fontSize: 76, color: Colors.white),
+        maxWidth: 1000,
+        align: TextAlign.center,
+      );
+      text(
+        c,
+        sub,
+        Offset(s.width / 2, 196),
+        TextStyle(
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w400,
+          fontSize: 38,
+          color: Colors.white.withValues(alpha: 0.9),
+        ),
+        maxWidth: 1000,
+        align: TextAlign.center,
+      );
+      // Phone frame, running off the bottom edge.
+      const top = 300.0;
+      final h = s.height - top + 60;
+      final w = h * img.width / img.height;
+      final frame = Rect.fromLTWH((s.width - w) / 2, top, w, h);
+      final outer = RRect.fromRectAndRadius(frame.inflate(18), const Radius.circular(64));
+      c.drawRRect(
+        outer.shift(const Offset(0, 16)),
+        Paint()
+          ..color = Colors.black38
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30),
+      );
+      c.drawRRect(outer, Paint()..color = const Color(0xFF14201E));
+      c.save();
+      c.clipRRect(RRect.fromRectAndRadius(frame, const Radius.circular(48)));
+      c.drawImageRect(
+        img,
+        Offset.zero & Size(img.width.toDouble(), img.height.toDouble()),
+        frame,
+        Paint()..filterQuality = FilterQuality.high,
+      );
+      c.restore();
+    });
+  }
+}
+
 void main() {
   testWidgets('make graphics', (tester) async {
-    await tester.runAsync(makeIcons);
+    await tester.runAsync(() async {
+      const fonts = '/mnt/storage/projects/flutter/bin/cache/artifacts/material_fonts';
+      final loader = FontLoader('Roboto');
+      for (final f in ['Regular', 'Medium', 'Bold', 'Black']) {
+        loader.addFont(Future.value(ByteData.sublistView(File('$fonts/Roboto-$f.ttf').readAsBytesSync())));
+      }
+      await loader.load();
+      await makeIcons();
+      await featureGraphic();
+      await screenshots();
+    });
+    expect(File('store-assets/feature-graphic-1024x500.png').existsSync(), isTrue);
   });
 }
