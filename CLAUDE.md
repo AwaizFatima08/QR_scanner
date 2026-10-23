@@ -17,13 +17,19 @@ text, map, Wi-Fi details, contact, product search). No login, no accounts, no se
 - History: on the phone only (shared_preferences, max 200, duplicates move to top), can be switched off.
 - Ads (AdMob, HomiLabs account): see `docs/ads.md`. Policy lives only in `lib/ads/ads.dart`; only
   `lib/ads/admob_network.dart` imports the SDK. No banner over the camera or in the result sheet.
-- Contact email in the app: homilabs.smc@gmail.com. Privacy/terms links: https://tools.homilabs.org/privacy#scanlink
-  and /terms#scanlink (**sections still to be written** in `/mnt/storage/projects/homilabs_tools/site/` and uploaded
-  to Hostinger before release).
+- Contact email in the app: homilabs.smc@gmail.com. Privacy/terms: https://tools.homilabs.org/privacy#scanlink
+  and /terms#scanlink (source `/mnt/storage/projects/homilabs_tools/site/`, uploaded manually via hPanel File Manager;
+  live since 2026-10-23).
 
-## Status (2026-10-22)
-v1.0.0 (1) built; not yet on Play. AdMob app `ca-app-pub-2087846699268567~9562396258` registered 2026-10-22
-("Requires review / limited serving" until the Play listing is linked in AdMob).
+## Status (2026-10-23)
+**Submitted to Google Play 2026-10-23**: production release 1.0.0 (versionCode 1), full roll-out, 178 countries +
+rest of world, managed publishing OFF (goes live on approval; Google says up to 7 days). Play Console app id
+`4973346106816963509` (Homilabs org account). Listing, app content answers and graphics: `docs/play-listing.md`.
+Signed AAB: `releases/v1.0.0-1/scanlink-1.0.0-1.aab`. Next versionCode must be ≥ 2.
+AdMob app `ca-app-pub-2087846699268567~9562396258` ("Requires review / limited serving"). **After the app is live:**
+AdMob → Apps → ScanLink → Add store (link the Play listing) so ads serve fully, and check app-ads.txt shows verified.
+Tested on a real phone (OPPO CPH2743, 2026-10-23): camera scan and gallery scan both open links correctly. On that
+phone the system photo picker needs **Done** after tapping a picture.
 
 ## Commands
 - Tests: `flutter test` (scan parsing, history, widget flow incl. ad caps).
